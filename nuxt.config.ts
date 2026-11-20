@@ -1,6 +1,14 @@
+import { buildOfflineBundle } from "./scripts/build-sw.mjs";
+
 export default defineNuxtConfig({
   compatibilityDate: "2026-10-12",
   ssr: false,
+  hooks: {
+    "nitro:init"(nitro) {
+      if (nitro.options.dev) return;
+      nitro.hooks.hook("compiled", () => buildOfflineBundle(nitro.options.output.publicDir));
+    },
+  },
   devtools: { enabled: false },
   css: ["~/assets/css/main.css", "~/assets/css/product.css"],
   app: {

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev --host 127.0.0.1",
-    "build": "nuxt generate && node scripts/build-sw.mjs",
+    "build": "nuxt generate",
     "preview": "node scripts/serve.mjs",
     "typecheck": "nuxt typecheck",
     "test": "node --import tsx --test tests/*.test.ts"
