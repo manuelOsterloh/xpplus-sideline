@@ -40,17 +40,13 @@
   gap: 14px;
 }
 .app-shell .app-wordmark {
-  font-size: 15px;
+  color: var(--ink);
+  font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.4px;
   min-height: 44px;
   white-space: nowrap;
   padding: 0;
-}
-.app-wordmark b {
-  color: var(--ink);
-  font-size: 21px;
-  margin-right: 6px;
 }
 .app-shell .breadcrumb > .topbar-divider {
   display: block;
@@ -577,11 +573,7 @@
     padding-inline: 10px;
   }
   .app-shell .app-wordmark {
-    font-size: 12px;
-  }
-  .app-wordmark b {
     font-size: 18px;
-    margin-right: 3px;
   }
   .app-shell .breadcrumb > .demo-pill {
     font-size: 9px;

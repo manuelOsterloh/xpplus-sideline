@@ -1,4 +1,4 @@
-# XP+ Sideline
+# MIDFIELD
 
 Tabletoptimierter American-Football-Scoring-Prototyp mit Nuxt **4.6.1**, Vue 3 und TypeScript. Flat Design, drei Clubfarben, Fokusmodus, Play-by-Play-Erfassung und direkt abgeleitete Statistiken. Keine Tarifstufen.
 

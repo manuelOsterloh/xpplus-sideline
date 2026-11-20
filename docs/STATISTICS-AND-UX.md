@@ -1,4 +1,4 @@
-# XP+ Sideline — Statistikmodell und Bedienkonzept
+# MIDFIELD — Statistikmodell und Bedienkonzept
 
 Stand: 12. Oktober 2026. Keine Basic-/Advanced-/Premium-Trennung. Alle verfügbaren Funktionen befinden sich im selben Workspace.
 

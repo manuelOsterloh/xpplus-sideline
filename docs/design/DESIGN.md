@@ -1,4 +1,7 @@
-# Sideline – Gestaltung und Bedienung
+# MIDFIELD – Gestaltung und Bedienung
+
+Seit dem 20. November 2026 nutzt MIDFIELD die ausgewählte Gestaltung **Fieldline**. Der Feldstreifen zeigt Ballposition und First-Down-Linie. Auf dem Tablet liegen Spieltyp und Spielerwahl links und die Yards rechts. Die Speicherleiste zeigt den nächsten Spielzustand. [Umgesetzte Tablet-Ansicht](../screenshots/midfield-fieldline-tablet.png) · [Ursprüngliche Designauswahl](midfield/index.html).
+
 
 Stand: 22. Oktober 2026. Ziel ist ein konzentriertes Tablet-Werkzeug für den nächsten Football-Spielzug und eine verständliche Kundenvorführung.
 

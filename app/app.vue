@@ -29,7 +29,6 @@ import {
   BookOpen,
   Home,
   Shield,
-  SlidersHorizontal,
   Target,
   Timer,
   TrendingUp,
@@ -83,7 +82,8 @@ const { plays, state, club, roster, status, settings, playbook, adjustments } =
   game;
 const focusMode = ref(false),
   fieldOpen = ref(false),
-  moreKinds = ref(false);
+  moreKinds = ref(false),
+  outcomeOpen = ref(false);
 const page = ref("live"),
   menuOpen = ref(false),
   drawer = ref<"settings" | "help" | "situation" | null>(null);
@@ -381,7 +381,7 @@ const availableKinds = computed<Kind[]>(() =>
 );
 const visibleKinds = computed(() =>
   focusMode.value && !moreKinds.value && state.value.phase === "scrimmage"
-    ? availableKinds.value.slice(0, 4)
+    ? availableKinds.value.filter((kind, i) => i < 3 || kind === draft.kind)
     : availableKinds.value,
 );
 const resultOptions = computed(() =>
@@ -456,23 +456,29 @@ function applyPreview() {
 }
 import { applyPlay as gamePreview } from "#shared/game";
 const previewLabel = computed(() =>
-  preview.value?.after.ended
+  state.value.ended
     ? "Final"
-    : preview.value?.after.overtime &&
-        (preview.value.after.overtime.series !== state.value.overtime?.series ||
-          preview.value.after.overtime.round !== state.value.overtime?.round)
-      ? `OT${preview.value.after.overtime.round} · ${preview.value.after.possession === "home" ? club.value.short : club.value.opponentShort}`
-      : preview.value?.touchdown
-        ? "Touchdown · +6 Punkte"
-        : preview.value?.safety
-          ? "Safety · +2 Punkte"
-          : preview.value?.after.phase === "try"
-            ? "Conversion folgt"
-            : preview.value?.after.phase === "kickoff"
-              ? "Kickoff folgt"
-              : preview.value?.after.possession !== state.value.possession
-                ? "Ballbesitz wechselt"
-                : `${preview.value?.after.down ?? state.value.down}. & ${preview.value?.after.goalToGo ? "Goal" : (preview.value?.after.distance ?? state.value.distance)} · ${spotLabel(preview.value?.after.ball ?? state.value.ball)}`,
+    : !preview.value
+      ? "Eingabe prüfen"
+      : preview.value.after.ended
+        ? "Final"
+        : preview.value?.after.overtime &&
+            (preview.value.after.overtime.series !==
+              state.value.overtime?.series ||
+              preview.value.after.overtime.round !==
+                state.value.overtime?.round)
+          ? `OT${preview.value.after.overtime.round} · ${preview.value.after.possession === "home" ? club.value.short : club.value.opponentShort}`
+          : preview.value?.touchdown
+            ? "Touchdown · +6 Punkte"
+            : preview.value?.safety
+              ? "Safety · +2 Punkte"
+              : preview.value?.after.phase === "try"
+                ? "Conversion folgt"
+                : preview.value?.after.phase === "kickoff"
+                  ? "Kickoff folgt"
+                  : preview.value?.after.possession !== state.value.possession
+                    ? "Ballbesitz wechselt"
+                    : `${preview.value?.after.down ?? state.value.down}. & ${preview.value?.after.goalToGo ? "Goal" : (preview.value?.after.distance ?? state.value.distance)} · ${spotLabel(preview.value?.after.ball ?? state.value.ball)}`,
 );
 const theme = computed(() => ({
   "--club-primary": club.value.primary,
@@ -503,7 +509,7 @@ function keyboard(event: KeyboardEvent) {
   if (/^[1-8]$/.test(event.key) && availableKinds.value[n]) {
     event.preventDefault();
     selectKind(availableKinds.value[n]!);
-    if (n > 3) moreKinds.value = true;
+    if (n >= 3) moreKinds.value = true;
   }
 }
 onMounted(() => window.addEventListener("keydown", keyboard));
@@ -532,10 +538,11 @@ onMounted(() => {
 onBeforeUnmount(() => window.removeEventListener("hashchange", readLocation));
 useHead({
   title: computed(
-    () => `${nav.find((n) => n.id === page.value)?.name} · XP+ Sideline`,
+    () => `${nav.find((n) => n.id === page.value)?.name} · MIDFIELD`,
   ),
 });
 function selectKind(kind: Kind) {
+  outcomeOpen.value = false;
   draft.kind = kind;
   draft.returns = [];
   draft.laterals = [];
@@ -591,6 +598,7 @@ function savePlay() {
     const next = availableKinds.value[0] || "run";
     Object.assign(draft, game.blankInput());
     selectKind(next);
+    outcomeOpen.value = false;
     rulesOpen.value = false;
     advanced.value = false;
     callOpen.value = false;
@@ -951,7 +959,7 @@ function exportFile(format: "json" | "csv") {
   );
   const a = document.createElement("a");
   a.href = url;
-  a.download = `sideline-${club.value.short.toLowerCase()}.${format}`;
+  a.download = `midfield-${club.value.short.toLowerCase()}.${format}`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   notify(`${format.toUpperCase()}-Download gestartet`);
@@ -982,7 +990,7 @@ async function readBackup(event: Event) {
   try {
     if (file.size > MAX_BACKUP_BYTES)
       throw new Error(
-        "Datei zu groß. Eine Sideline-JSON-Datei bis 8 MB wählen.",
+        "Datei zu groß. Eine MIDFIELD-JSON-Datei bis 8 MB wählen.",
       );
     backupText.value = await file.text();
     backupPreview.value = game.previewRestore(backupText.value);
@@ -1123,11 +1131,11 @@ function advanceQuarter() {
     <aside class="sidebar" :inert="!!drawer" :class="{ open: menuOpen }">
       <button
         class="brand"
-        aria-label="Sideline Startseite"
+        aria-label="MIDFIELD Startseite"
         @click="navigate('setup')"
       >
-        <span class="brand-mark">xp<span>+</span></span
-        ><span class="brand-name">sideline<span>EVERY PLAY COUNTS.</span></span>
+        <span class="brand-mark" aria-hidden="true">M</span
+        ><span class="brand-name">MIDFIELD<span>EVERY PLAY COUNTS.</span></span>
       </button>
       <button class="club-switch" @click="drawer = 'settings'">
         <div class="club-emblem"><Shield :size="21" /></div>
@@ -1167,8 +1175,8 @@ function advanceQuarter() {
           <CircleHelp :size="19" /> Kurzanleitung
         </button>
         <div class="operator">
-          <div class="avatar">SC</div>
-          <span>Sideline Crew<small>Lokaler Arbeitsbereich</small></span
+          <div class="avatar">MC</div>
+          <span>MIDFIELD Crew<small>Lokaler Arbeitsbereich</small></span
           ><span class="operator-dot"></span>
         </div>
       </div>
@@ -1184,16 +1192,27 @@ function advanceQuarter() {
             <Menu :size="22" /></button
           ><button
             class="app-wordmark"
-            aria-label="Sideline Spielübersicht"
+            aria-label="MIDFIELD Spielübersicht"
             @click="navigate('setup')"
           >
-            <b>XP+</b> SIDELINE</button
+            MIDFIELD</button
           ><span class="topbar-divider"></span
           ><strong class="current-view">{{
             nav.find((n) => n.id === page)?.name
           }}</strong
           ><span v-if="game.isDemo.value" class="demo-pill">DEMO</span>
         </div>
+        <nav class="tab-dock" aria-label="Ansichten">
+          <button
+            v-for="item in nav"
+            :key="item.id"
+            :class="{ active: page === item.id }"
+            :aria-current="page === item.id ? 'page' : undefined"
+            @click="navigate(item.id)"
+          >
+            <component :is="item.icon" :size="22" /><span>{{ item.name }}</span>
+          </button>
+        </nav>
         <div class="topbar-right">
           <button
             v-if="page === 'live'"
@@ -1246,17 +1265,6 @@ function advanceQuarter() {
           Sichern
         </button>
       </div>
-      <nav class="tab-dock" aria-label="Ansichten">
-        <button
-          v-for="item in nav"
-          :key="item.id"
-          :class="{ active: page === item.id }"
-          :aria-current="page === item.id ? 'page' : undefined"
-          @click="navigate(item.id)"
-        >
-          <component :is="item.icon" :size="22" /><span>{{ item.name }}</span>
-        </button>
-      </nav>
       <main
         id="main-content"
         tabindex="-1"
@@ -1318,100 +1326,15 @@ function advanceQuarter() {
             </button>
           </div>
         </div>
-        <section class="scoreboard" aria-label="Spielstand">
-          <div class="score-team home">
-            <div class="team-logo">
-              <img v-if="club.logo" :src="club.logo" alt="Clublogo" /><Shield
-                v-else
-                :size="31"
-                :stroke-width="1.6"
-              /><span v-if="!club.logo">{{ club.short.slice(0, 1) }}</span>
-            </div>
-            <div>
-              <span class="eyebrow"
-                >HOME
-                <span v-if="state.possession === 'home'" class="possession-pill"
-                  >BALLBESITZ</span
-                ></span
-              >
-              <h2>
-                <button @click="drawer = 'settings'">{{ club.name }}</button>
-              </h2>
-              <span class="team-abbr">{{ club.short }}</span>
-            </div>
-          </div>
-          <div class="score-center">
-            <div class="score-numbers">
-              <button
-                aria-label="Heimspielstand bearbeiten"
-                @click="drawer = 'situation'"
-              >
-                {{ state.home }}</button
-              ><i>:</i
-              ><button
-                aria-label="Gastspielstand bearbeiten"
-                @click="drawer = 'situation'"
-              >
-                {{ state.away }}
-              </button>
-            </div>
-            <button
-              class="clock-control"
-              @click="
-                drawer = 'situation';
-                clockInput = clockLabel(state.clock);
-              "
-            >
-              <span class="tiny-dot"></span>
-              {{
-                state.overtime
-                  ? `OT${state.overtime.round}`
-                  : `Q${state.quarter}`
-              }}
-              <span class="clock-divider">|</span>
-              {{
-                state.ended
-                  ? "FINAL"
-                  : state.overtime
-                    ? `Serie ${state.overtime.series}/2`
-                    : clockLabel(state.clock)
-              }}
-              <ChevronDown :size="13" />
-            </button>
-          </div>
-          <div class="score-team away">
-            <div>
-              <span class="eyebrow"
-                >AWAY
-                <span v-if="state.possession === 'away'" class="possession-pill"
-                  >BALLBESITZ</span
-                ></span
-              >
-              <h2>
-                <button @click="drawer = 'settings'">
-                  {{ club.opponent }}
-                </button>
-              </h2>
-              <span class="team-abbr">{{ club.opponentShort }}</span>
-            </div>
-            <div class="team-logo away-logo">
-              <Shield :size="31" :stroke-width="1.6" /><span>C</span>
-            </div>
-          </div>
-          <div class="scoreboard-bottom">
-            <span
-              ><span class="live-label">LIVE</span> Auf diesem Gerät
-              <span class="muted-dot">·</span> NCAA-orientierte Erfassung</span
-            ><button
-              @click="
-                drawer = 'situation';
-                clockInput = clockLabel(state.clock);
-              "
-            >
-              <SlidersHorizontal :size="15" /> Spielzeit
-            </button>
-          </div>
-        </section>
+        <FieldlineScore
+          :state="state"
+          :club="club"
+          @settings="drawer = 'settings'"
+          @situation="
+            drawer = 'situation';
+            clockInput = clockLabel(state.clock);
+          "
+        />
 
         <template v-if="page === 'setup'">
           <section class="game-launch">
@@ -1479,59 +1402,46 @@ function advanceQuarter() {
         <template v-else-if="page === 'live'">
           <div class="live-layout">
             <div class="capture-column">
-              <section class="panel field-panel">
-                <div class="panel-heading">
-                  <h2><span class="section-number">01</span> Spielsituation</h2>
-                  <div class="field-panel-actions">
-                    <button
-                      class="subtle-button field-toggle"
-                      @click="fieldOpen = !fieldOpen"
-                    >
-                      {{ fieldOpen ? "Feld schließen" : "Spielfeld" }}
-                      <ChevronDown :size="14" /></button
-                    ><button
-                      class="neutral-badge situation-edit"
-                      @click="drawer = 'situation'"
-                    >
-                      DRIVE {{ state.drive }} <Pencil :size="11" />
-                    </button>
-                  </div>
-                </div>
-                <div class="situation-row">
-                  <div>
-                    <small>DOWN & DISTANCE</small
+              <section class="fieldline-context" aria-label="Spielsituation">
+                <div class="fieldline-context-row">
+                  <button
+                    @click="drawer = 'situation'"
+                    aria-label="Down und Distanz bearbeiten"
+                  >
+                    <small>Down</small
                     ><strong>{{
-                      state.phase === "try"
-                        ? "Conversion"
-                        : state.phase === "kickoff"
-                          ? "Kickoff"
-                          : `${state.down}. & ${state.goalToGo ? "Goal" : state.distance}`
+                      state.ended
+                        ? "Final"
+                        : state.phase === "try"
+                          ? "Conversion"
+                          : state.phase === "kickoff"
+                            ? "Kickoff"
+                            : state.down +
+                              ". & " +
+                              (state.goalToGo ? "Goal" : state.distance)
                     }}</strong>
-                  </div>
-                  <div>
-                    <small>BALL AUF</small
-                    ><button
-                      class="spot-access"
-                      aria-label="Feld öffnen"
-                      :aria-expanded="fieldOpen"
-                      @click="fieldOpen = !fieldOpen"
-                    >
-                      <strong>{{ spotLabel(state.ball) }}</strong
-                      ><ChevronDown :size="16" />
-                    </button>
-                  </div>
-                  <div>
-                    <small>AKTUELLER DRIVE</small
-                    ><strong
-                      >{{ currentDrive.length }} <span>Plays</span> <i>·</i>
-                      {{ driveYards }} <span>Yds</span></strong
-                    >
-                  </div>
-                  <div class="offense-tag">
-                    <ArrowRight :size="16" /> {{ activeTeam }} Offense
-                  </div>
+                  </button>
+                  <button
+                    @click="fieldOpen = !fieldOpen"
+                    :aria-expanded="fieldOpen"
+                    aria-label="Feld öffnen"
+                  >
+                    <small>Spot</small
+                    ><strong>{{ spotLabel(state.ball) }}</strong
+                    ><ChevronDown :size="15" />
+                  </button>
+                  <span
+                    ><small>Angriff</small
+                    ><strong>{{ activeTeam }}</strong></span
+                  >
+                  <span class="fieldline-drive"
+                    ><small>Drive {{ state.drive }}</small
+                    >{{ currentDrive.length }} Plays ·
+                    {{ driveYards }} Yds</span
+                  >
                 </div>
                 <FootballField
+                  v-if="fieldOpen"
                   :ball="state.ball"
                   :distance="state.distance"
                   :gain="
@@ -1547,9 +1457,7 @@ function advanceQuarter() {
               </section>
               <section class="panel capture-panel">
                 <div class="panel-heading">
-                  <h2>
-                    <span class="section-number">02</span> Spielzug erfassen
-                  </h2>
+                  <h2>Spielzug erfassen</h2>
                   <div class="capture-header-actions">
                     <button
                       v-if="focusMode && state.phase === 'scrimmage'"
@@ -1568,49 +1476,224 @@ function advanceQuarter() {
                     </button>
                   </div>
                 </div>
-                <div class="play-type-grid">
+                <div
+                  class="fieldline-entry"
+                  :class="{ 'without-yards': !showYards }"
+                >
+                  <div class="fieldline-choices">
+                    <strong class="fieldline-label">Spielzug</strong>
+                    <div class="play-type-grid">
+                      <button
+                        v-for="(kind, i) in visibleKinds"
+                        :key="kind"
+                        :class="{ selected: draft.kind === kind }"
+                        :aria-pressed="draft.kind === kind"
+                        @click="selectKind(kind)"
+                      >
+                        <component
+                          :is="
+                            kind === 'run'
+                              ? ArrowRight
+                              : kind === 'pass'
+                                ? ArrowUpRight
+                                : kind === 'penalty'
+                                  ? Flag
+                                  : kind === 'sack'
+                                    ? Shield
+                                    : kind === 'kneel'
+                                      ? ArrowLeft
+                                      : kind === 'spike'
+                                        ? ArrowDownToLine
+                                        : Target
+                          "
+                          :size="22"
+                        /><span>{{ labels[kind] }}</span
+                        ><small>{{ i + 1 }}</small>
+                      </button>
+                    </div>
+                    <div class="capture-details">
+                      <div class="input-section">
+                        <label>{{
+                          draft.kind === "penalty"
+                            ? "STRAFE GEGEN"
+                            : [
+                                  "kneel",
+                                  "spike",
+                                  "grounding",
+                                  "wildsnap",
+                                ].includes(draft.kind)
+                              ? "ZUORDNUNG"
+                              : draft.kind === "run"
+                                ? "Ballträger"
+                                : draft.kind === "pass"
+                                  ? "Quarterback"
+                                  : "Spieler"
+                        }}</label>
+                        <div v-if="draft.kind === 'penalty'" class="segmented">
+                          <button
+                            :class="{ selected: draft.penaltyTeam === 'home' }"
+                            @click="draft.penaltyTeam = 'home'"
+                          >
+                            {{ club.short }}</button
+                          ><button
+                            :class="{ selected: draft.penaltyTeam === 'away' }"
+                            @click="draft.penaltyTeam = 'away'"
+                          >
+                            {{ club.opponentShort }}
+                          </button>
+                        </div>
+                        <div
+                          v-else-if="
+                            [
+                              'kneel',
+                              'spike',
+                              'grounding',
+                              'wildsnap',
+                            ].includes(draft.kind)
+                          "
+                          class="team-attribution"
+                        >
+                          {{ activeTeam }} · Team-Statistik
+                        </div>
+                        <QuickPlayer
+                          v-else
+                          v-model="draft.player"
+                          :players="offensePlayers"
+                          label="Spieler"
+                          :preferred="
+                            ['pass', 'sack', 'two'].includes(draft.kind)
+                              ? ['QB', 'RB', 'WR']
+                              : [
+                                    'punt',
+                                    'kickoff',
+                                    'fieldgoal',
+                                    'pat',
+                                  ].includes(draft.kind)
+                                ? ['K', 'P']
+                                : ['RB', 'QB', 'WR']
+                          "
+                        />
+                      </div>
+                      <div v-if="draft.kind === 'pass'" class="input-section">
+                        <label>Receiver</label
+                        ><QuickPlayer
+                          v-model="draft.target"
+                          :players="offensePlayers"
+                          label="Receiver"
+                          :preferred="['WR', 'TE', 'RB']"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="showYards" class="yard-entry">
+                    <div class="yard-title">
+                      <label>{{
+                        draft.kind === "penalty"
+                          ? "TATSÄCHLICHE STRAF-YARDS"
+                          : draft.kind === "punt"
+                            ? "PUNT-YARDS"
+                            : draft.kind === "fieldgoal"
+                              ? "KICK-DISTANZ"
+                              : "Raumgewinn"
+                      }}</label
+                      ><span>Yards</span>
+                    </div>
+                    <div class="yard-controls">
+                      <button
+                        class="square-button"
+                        aria-label="Ein Yard weniger"
+                        @click="draft.yards--"
+                      >
+                        <Minus :size="21" /></button
+                      ><input
+                        v-model.number="draft.yards"
+                        type="number"
+                        aria-label="Yards"
+                        min="-99"
+                        max="100"
+                      /><button
+                        class="square-button"
+                        aria-label="Ein Yard mehr"
+                        @click="draft.yards++"
+                      >
+                        <Plus :size="21" />
+                      </button>
+                      <div class="quick-yards">
+                        <button
+                          v-for="n in draft.kind === 'sack'
+                            ? [-10, -5, -3, -1]
+                            : [0, 3, 5, 10]"
+                          :key="n"
+                          :class="{ selected: draft.yards === n }"
+                          :aria-pressed="draft.yards === n"
+                          @click="draft.yards = n"
+                        >
+                          {{ n > 0 ? "+" : "" }}{{ n }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="fieldline-tools">
                   <button
-                    v-for="(kind, i) in visibleKinds"
-                    :key="kind"
-                    :class="{ selected: draft.kind === kind }"
-                    :aria-pressed="draft.kind === kind"
-                    @click="selectKind(kind)"
+                    v-if="['run', 'sack'].includes(draft.kind)"
+                    class="detail-toggle"
+                    :aria-expanded="outcomeOpen"
+                    @click="outcomeOpen = !outcomeOpen"
                   >
-                    <component
-                      :is="
-                        kind === 'run'
-                          ? ArrowRight
-                          : kind === 'pass'
-                            ? ArrowUpRight
-                            : kind === 'penalty'
-                              ? Flag
-                              : kind === 'sack'
-                                ? Shield
-                                : kind === 'kneel'
-                                  ? ArrowLeft
-                                  : kind === 'spike'
-                                    ? ArrowDownToLine
-                                    : Target
+                    <ChevronDown :size="16" />{{
+                      draft.result === "normal"
+                        ? "Ergebnis"
+                        : resultOptions.find((o) => o[0] === draft.result)?.[1]
+                    }}<template
+                      v-if="
+                        draft.direction && draft.direction !== 'Nicht erfasst'
                       "
-                      :size="22"
-                    /><span>{{ labels[kind] }}</span
-                    ><small>{{ i + 1 }}</small>
+                    >
+                      · {{ draft.direction }}</template
+                    >
+                  </button>
+                  <button
+                    class="call-summary"
+                    :aria-expanded="callOpen"
+                    @click="callOpen = !callOpen"
+                  >
+                    <BookOpen :size="16" /><span
+                      ><b>{{
+                        state.possession === "home"
+                          ? "OFFENSE CALL"
+                          : "DEFENSE CALL"
+                      }}</b
+                      >{{ callSummary }}</span
+                    ><ChevronDown :size="16" />
+                  </button>
+                  <button
+                    class="detail-toggle ruling-toggle"
+                    :aria-expanded="rulesOpen"
+                    @click="rulesOpen = !rulesOpen"
+                  >
+                    <Flag :size="17" /> Ruling
+                    <span>{{
+                      (draft.penalties?.length || 0) +
+                        (draft.returns?.length || 0) +
+                        (draft.laterals?.length || 0) || ""
+                    }}</span
+                    ><ChevronDown :size="16" />
+                  </button>
+                  <button
+                    class="detail-toggle"
+                    :aria-expanded="advanced"
+                    @click="advanced = !advanced"
+                  >
+                    <Plus v-if="!advanced" :size="16" /><Minus
+                      v-else
+                      :size="16"
+                    />
+                    Details <span>Defense · Uhr · Notiz</span
+                    ><ChevronDown :size="15" />
                   </button>
                 </div>
-                <button
-                  class="call-summary"
-                  :aria-expanded="callOpen"
-                  @click="callOpen = !callOpen"
-                >
-                  <BookOpen :size="16" /><span
-                    ><b>{{
-                      state.possession === "home"
-                        ? "OFFENSE CALL"
-                        : "DEFENSE CALL"
-                    }}</b
-                    >{{ callSummary }}</span
-                  ><ChevronDown :size="16" /></button
-                ><CallPicker
+                <CallPicker
                   v-if="callOpen"
                   :draft="draft"
                   :entries="playbook"
@@ -1618,67 +1701,28 @@ function advanceQuarter() {
                   @select="selectCall"
                   @done="callOpen = false"
                 />
-                <div class="capture-details">
-                  <div class="input-section">
-                    <label>{{
-                      draft.kind === "penalty"
-                        ? "STRAFE GEGEN"
-                        : ["kneel", "spike", "grounding", "wildsnap"].includes(
-                              draft.kind,
-                            )
-                          ? "ZUORDNUNG"
-                          : "SPIELER"
-                    }}</label>
-                    <div v-if="draft.kind === 'penalty'" class="segmented">
-                      <button
-                        :class="{ selected: draft.penaltyTeam === 'home' }"
-                        @click="draft.penaltyTeam = 'home'"
-                      >
-                        {{ club.short }}</button
-                      ><button
-                        :class="{ selected: draft.penaltyTeam === 'away' }"
-                        @click="draft.penaltyTeam = 'away'"
-                      >
-                        {{ club.opponentShort }}
-                      </button>
-                    </div>
-                    <div
-                      v-else-if="
-                        ['kneel', 'spike', 'grounding', 'wildsnap'].includes(
-                          draft.kind,
-                        )
-                      "
-                      class="team-attribution"
+                <div
+                  v-if="outcomeOpen || !['run', 'sack'].includes(draft.kind)"
+                  class="fieldline-outcomes"
+                >
+                  <div v-if="resultOptions.length" class="result-options">
+                    <button
+                      v-for="option in resultOptions"
+                      :key="option[0]"
+                      :class="{ selected: draft.result === option[0] }"
+                      :aria-pressed="draft.result === option[0]"
+                      @click="draft.result = option[0] as PlayInput['result']"
                     >
-                      {{ activeTeam }} · Team-Statistik
-                    </div>
-                    <QuickPlayer
-                      v-else
-                      v-model="draft.player"
-                      :players="offensePlayers"
-                      label="Spieler"
-                      :preferred="
-                        ['pass', 'sack', 'two'].includes(draft.kind)
-                          ? ['QB', 'RB', 'WR']
-                          : ['punt', 'kickoff', 'fieldgoal', 'pat'].includes(
-                                draft.kind,
-                              )
-                            ? ['K', 'P']
-                            : ['RB', 'QB', 'WR']
-                      "
-                    />
+                      <Check v-if="draft.result === option[0]" :size="14" />{{
+                        option[1]
+                      }}
+                    </button>
                   </div>
-                  <div v-if="draft.kind === 'pass'" class="input-section">
-                    <label>RECEIVER</label
-                    ><QuickPlayer
-                      v-model="draft.target"
-                      :players="offensePlayers"
-                      label="Receiver"
-                      :preferred="['WR', 'TE', 'RB']"
-                    />
-                  </div>
-                  <div v-else class="input-section">
-                    <label>RICHTUNG</label>
+                  <div
+                    v-if="draft.kind !== 'pass'"
+                    class="input-section fieldline-direction"
+                  >
+                    <label>Richtung</label>
                     <div class="segmented direction">
                       <button
                         v-for="direction in ['Links', 'Mitte', 'Rechts']"
@@ -1692,19 +1736,6 @@ function advanceQuarter() {
                     </div>
                   </div>
                 </div>
-                <div v-if="resultOptions.length" class="result-options">
-                  <button
-                    v-for="option in resultOptions"
-                    :key="option[0]"
-                    :class="{ selected: draft.result === option[0] }"
-                    :aria-pressed="draft.result === option[0]"
-                    @click="draft.result = option[0] as PlayInput['result']"
-                  >
-                    <Check v-if="draft.result === option[0]" :size="14" />{{
-                      option[1]
-                    }}
-                  </button>
-                </div>
                 <div v-if="draft.kind === 'penalty'" class="penalty-options">
                   <label
                     >Auswirkung auf den Down<select v-model="draft.penaltyMode">
@@ -1717,54 +1748,6 @@ function advanceQuarter() {
                     Standard: angenommene Strafe ohne Play. Weitere
                     Entscheidungen unter „Ruling“.
                   </p>
-                </div>
-                <div v-if="showYards" class="yard-entry">
-                  <div class="yard-title">
-                    <label>{{
-                      draft.kind === "penalty"
-                        ? "TATSÄCHLICHE STRAF-YARDS"
-                        : draft.kind === "punt"
-                          ? "PUNT-YARDS"
-                          : draft.kind === "fieldgoal"
-                            ? "KICK-DISTANZ"
-                            : "RAUMGEWINN"
-                    }}</label
-                    ><span>Yards</span>
-                  </div>
-                  <div class="yard-controls">
-                    <button
-                      class="square-button"
-                      aria-label="Ein Yard weniger"
-                      @click="draft.yards--"
-                    >
-                      <Minus :size="21" /></button
-                    ><input
-                      v-model.number="draft.yards"
-                      type="number"
-                      aria-label="Yards"
-                      min="-99"
-                      max="100"
-                    /><button
-                      class="square-button"
-                      aria-label="Ein Yard mehr"
-                      @click="draft.yards++"
-                    >
-                      <Plus :size="21" />
-                    </button>
-                    <div class="quick-yards">
-                      <button
-                        v-for="n in draft.kind === 'sack'
-                          ? [-10, -5, -3, -1]
-                          : [0, 1, 3, 5, 10, 20]"
-                        :key="n"
-                        :class="{ selected: draft.yards === n }"
-                        :aria-pressed="draft.yards === n"
-                        @click="draft.yards = n"
-                      >
-                        {{ n > 0 ? "+" : "" }}{{ n }}
-                      </button>
-                    </div>
-                  </div>
                 </div>
                 <div v-if="showReturn" class="input-section return-input">
                   <label>BALLSPOT · EIGENE GOALLINE DES TEAMS MIT BALL</label
@@ -1821,19 +1804,6 @@ function advanceQuarter() {
                     </select></label
                   >
                 </div>
-                <button
-                  class="detail-toggle ruling-toggle"
-                  :aria-expanded="rulesOpen"
-                  @click="rulesOpen = !rulesOpen"
-                >
-                  <Flag :size="17" /> Ruling
-                  <span>{{
-                    (draft.penalties?.length || 0) +
-                      (draft.returns?.length || 0) +
-                      (draft.laterals?.length || 0) || ""
-                  }}</span
-                  ><ChevronDown :size="16" />
-                </button>
                 <PlayRuling
                   v-if="rulesOpen"
                   :draft="draft"
@@ -1842,18 +1812,6 @@ function advanceQuarter() {
                   :home="club.short"
                   :away="club.opponentShort"
                 />
-                <button
-                  class="detail-toggle"
-                  :aria-expanded="advanced"
-                  @click="advanced = !advanced"
-                >
-                  <Plus v-if="!advanced" :size="16" /><Minus
-                    v-else
-                    :size="16"
-                  />
-                  Details <span>Defense · Uhr · Notiz</span
-                  ><ChevronDown :size="15" />
-                </button>
                 <div v-if="advanced" class="advanced-grid">
                   <div class="hold-control">
                     <button
@@ -1986,8 +1944,7 @@ function advanceQuarter() {
                 </p>
                 <div class="save-play-row">
                   <div>
-                    <span class="auto-label"
-                      ><Zap :size="13" /> AUTOMATISCH DANACH</span
+                    <span class="auto-label">Danach</span
                     ><strong>{{ previewLabel }}</strong>
                   </div>
                   <button
@@ -1995,7 +1952,7 @@ function advanceQuarter() {
                     :disabled="state.ended"
                     @click="savePlay"
                   >
-                    <Check :size="20" /> Speichern
+                    Speichern
                     <ArrowRight :size="18" />
                   </button>
                 </div>
@@ -2853,7 +2810,7 @@ function advanceQuarter() {
         ></template>
         <footer class="workspace-footer">
           <span
-            ><span class="footer-mark">xp+</span> SIDELINE
+            ><span class="footer-mark">MIDFIELD</span>
             <span class="muted-dot">/</span> Every play counts.</span
           ><span>Auf diesem Gerät gespeichert · Ohne Cloud</span>
         </footer>
@@ -2992,7 +2949,7 @@ function advanceQuarter() {
               "
             >
               <i style="background: #193c32"></i
-              ><i style="background: #dbf479"></i> Sideline</button
+              ><i style="background: #dbf479"></i> MIDFIELD</button
             ><button
               @click="
                 club.primary = '#801f2b';
@@ -3063,7 +3020,7 @@ function advanceQuarter() {
               class="visually-hidden"
               type="file"
               accept=".json,application/json"
-              aria-label="Sideline-Sicherung auswählen"
+              aria-label="MIDFIELD-Sicherung auswählen"
               @change="readBackup"
             />
             <button class="button light" @click="importInput?.click()">
@@ -3108,7 +3065,7 @@ function advanceQuarter() {
               @click="
                 downloadText(
                   game.previousBackup.value!,
-                  'sideline-vorheriger-stand.json',
+                  'midfield-vorheriger-stand.json',
                 )
               "
             >
@@ -3120,7 +3077,7 @@ function advanceQuarter() {
               @click="
                 downloadText(
                   game.recoveryData.value!,
-                  'sideline-originaldaten.json',
+                  'midfield-originaldaten.json',
                 )
               "
             >

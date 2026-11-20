@@ -6,14 +6,21 @@ export default defineNuxtConfig({
   hooks: {
     "nitro:init"(nitro) {
       if (nitro.options.dev) return;
-      nitro.hooks.hook("compiled", () => buildOfflineBundle(nitro.options.output.publicDir));
+      nitro.hooks.hook("compiled", () =>
+        buildOfflineBundle(nitro.options.output.publicDir),
+      );
     },
   },
   devtools: { enabled: false },
-  css: ["~/assets/css/main.css", "~/assets/css/product.css"],
+  css: [
+    "~/assets/css/main.css",
+    "~/assets/css/product.css",
+    "~/assets/css/fieldline-shell.css",
+    "~/assets/css/fieldline-capture.css",
+  ],
   app: {
     head: {
-      title: "XP+ Sideline · Game day, in focus.",
+      title: "MIDFIELD · Football-Statistiken",
       htmlAttrs: { lang: "de" },
       meta: [
         {
@@ -32,9 +39,15 @@ export default defineNuxtConfig({
           name: "apple-mobile-web-app-status-bar-style",
           content: "black-translucent",
         },
-        { name: "apple-mobile-web-app-title", content: "Sideline" },
+        { name: "apple-mobile-web-app-title", content: "MIDFIELD" },
       ],
       link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "192x192",
+          href: "/icon-192.png",
+        },
         { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "apple-touch-icon", href: "/icon-192.png" },
       ],

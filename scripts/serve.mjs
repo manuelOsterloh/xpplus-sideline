@@ -43,5 +43,5 @@ createServer(async (req, res) => {
     res.writeHead(404).end("Not found");
   }
 }).listen(port, "127.0.0.1", () =>
-  console.log(`Sideline offline preview: http://127.0.0.1:${port}`),
+  console.log(`MIDFIELD offline preview: http://127.0.0.1:${port}`),
 );

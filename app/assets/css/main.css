@@ -119,10 +119,6 @@ a {
   text-align: center;
   line-height: 39px;
 }
-.brand-mark span {
-  color: var(--club-secondary);
-  font-size: 25px;
-}
 .brand-name {
   font-weight: 700;
   letter-spacing: -0.9px;

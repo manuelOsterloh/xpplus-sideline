@@ -1,0 +1,297 @@
+/* Fieldline uses the club accent as a tint on warm paper. The pitch and
+   interactive fills use the club colors directly with their paired text. */
+.app-shell {
+  --canvas: color-mix(in srgb, #f5f2e8 90%, var(--club-accent));
+  --surface: color-mix(in srgb, #fffdf5 96%, var(--club-accent));
+  --surface-soft: color-mix(in srgb, #e9eadc 94%, var(--club-primary));
+  --line: #c9cbb9;
+  --ink: #192e24;
+  --muted: #536254;
+  --sport-type: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+.app-shell.night-mode {
+  --canvas: #101c17;
+  --surface: #1a2922;
+  --surface-soft: #26382f;
+  --line: #4a6052;
+  --ink: #f6f4e9;
+  --muted: #c2cbbc;
+}
+
+.app-shell .topbar {
+  padding-inline: max(20px, calc((100vw - 1216px) / 2));
+  background: var(--canvas);
+  border-bottom: 1px solid var(--line);
+}
+.app-shell .app-wordmark {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink);
+  min-height: 52px;
+  font: 700 30px/0.95 var(--sport-type);
+  letter-spacing: -1.3px;
+  transform: skewX(-9deg);
+}
+.app-wordmark::before {
+  content: "";
+  display: block;
+  width: 30px;
+  height: 23px;
+  background: currentColor;
+  clip-path: polygon(
+    0 0,
+    30% 0,
+    45% 49%,
+    68% 0,
+    100% 0,
+    92% 100%,
+    65% 100%,
+    70% 44%,
+    45% 81%,
+    36% 81%,
+    24% 43%,
+    22% 100%,
+    0 100%
+  );
+}
+.app-shell .breadcrumb > .topbar-divider,
+.app-shell .breadcrumb > .current-view {
+  display: none;
+}
+.app-shell .breadcrumb > .demo-pill {
+  gap: 5px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+}
+.app-shell .demo-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--club-secondary);
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+.app-shell .offline-state {
+  padding: 6px 9px;
+  max-width: 100px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.25;
+  background: var(--surface-soft);
+}
+.app-shell .tab-dock {
+  background: var(--surface);
+}
+.app-shell .tab-dock button {
+  color: var(--ink);
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.app-shell .tab-dock button.active {
+  border-color: var(--ink);
+  box-shadow: inset 0 -3px
+    color-mix(in srgb, var(--on-primary) 25%, transparent);
+}
+@media (min-width: 900px) {
+  .app-shell .workspace {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .app-shell .topbar {
+    min-height: 70px;
+    gap: 12px;
+  }
+  .app-shell .topbar-right {
+    gap: 3px;
+  }
+  .app-shell .topbar .tab-dock {
+    position: static;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .app-shell .topbar .tab-dock button {
+    flex: 0 1 auto;
+    flex-direction: row;
+    gap: 5px;
+    width: auto;
+    min-height: 52px;
+    padding-inline: clamp(9px, 1vw, 15px);
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  .topbar .tab-dock button svg {
+    display: none;
+  }
+  .app-shell .toast-message {
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 900px) and (max-width: 1190px) {
+  .app-shell .topbar {
+    padding-inline: 16px;
+    gap: 6px;
+  }
+  .app-shell .topbar-right .save-state {
+    display: none;
+  }
+}
+@media (min-width: 1200px) {
+  .topbar .tab-dock button svg {
+    display: block;
+    width: 17px;
+    height: 17px;
+  }
+}
+@media (max-width: 640px) {
+  .app-shell .topbar {
+    padding-inline: 12px;
+  }
+  .app-shell .app-wordmark {
+    font-size: 24px;
+    gap: 5px;
+  }
+  .app-wordmark::before {
+    width: 21px;
+    height: 18px;
+  }
+  .app-shell .tab-dock button {
+    min-height: 54px;
+    border-radius: 8px;
+  }
+}
+
+/* Shared display hierarchy outside the live scoring surface. */
+.app-shell:not(.native-live) .page-heading h1,
+.app-shell:not(.native-live) .panel-heading h2,
+.app-shell .game-launch h2,
+.app-shell .drawer-heading h2,
+.app-shell .drawer-section h3 {
+  font-family: var(--sport-type);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.app-shell:not(.native-live) .page-heading h1 {
+  font-size: clamp(34px, 4vw, 50px);
+}
+.app-shell:not(.native-live) .panel-heading h2,
+.app-shell .drawer-heading h2,
+.app-shell .game-launch h2 {
+  font-size: clamp(24px, 3vw, 32px);
+}
+.app-shell .drawer-section h3 {
+  font-size: 22px;
+}
+.app-shell:not(.native-live) .page-heading .eyebrow {
+  display: none;
+}
+.app-shell:not(.native-live) .fl-score + :is(.panel, .dashboard-toolbar) {
+  margin-top: 18px;
+}
+.app-shell .dashboard-toolbar > span,
+.app-shell .dashboard-toolbar .segmented button:not(.selected),
+.app-shell .playbook-panel .segmented button:not(.selected) {
+  color: var(--muted);
+}
+.app-shell:not(.native-live) .panel {
+  border-radius: 10px;
+}
+.app-shell .setup-card.defense-card {
+  background: var(--club-primary);
+  color: var(--on-primary);
+  border-color: var(--club-primary);
+}
+.app-shell .setup-card :where(.eyebrow, p) {
+  opacity: 1;
+}
+.app-shell .defense-card :where(.eyebrow, p, .setup-card-footer) {
+  color: var(--on-primary);
+}
+.app-shell .defense-card .setup-card-footer {
+  border-color: currentColor;
+}
+.app-shell .setup-card-icon,
+.app-shell .jersey {
+  background: var(--club-secondary);
+  color: var(--on-secondary);
+  opacity: 1;
+  border-radius: 7px;
+}
+.app-shell .game-launch,
+.app-shell .drawer {
+  background: var(--surface);
+}
+.app-shell .game-launch .primary {
+  background: var(--club-secondary);
+  color: var(--on-secondary);
+  border: 2px solid var(--ink);
+}
+
+.app-shell
+  :is(
+    .dashboard-toolbar,
+    .history-filters,
+    .playbook-panel,
+    .roster-panel,
+    .drawer
+  )
+  :is(.button, .segmented button),
+.app-shell .history-filters button,
+.app-shell .playbook-tabs button,
+.app-shell .theme-presets button {
+  min-height: 48px;
+  font-weight: 700;
+}
+.app-shell .playbook-tabs button,
+.app-shell .history-filters button {
+  background: var(--surface-soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.app-shell :is(.playbook-tabs, .history-filters) button.selected {
+  background: var(--club-primary);
+  color: var(--on-primary);
+  border-color: var(--club-primary);
+}
+.app-shell .playbook-entries button {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.app-shell .playbook-entries :where(small, svg),
+.app-shell
+  :is(.breakdown-controls, .playbook-form, .player-form, .drawer-section)
+  > label {
+  color: var(--muted);
+}
+.app-shell :is(.playbook-form, .player-form) {
+  background: var(--surface-soft);
+  border-color: var(--line);
+}
+.app-shell .drawer-heading,
+.app-shell .drawer-section,
+.app-shell .game-launch,
+.app-shell .workspace-footer {
+  border-color: var(--line);
+}
+.app-shell .drawer-heading .icon-button,
+.app-shell .roster-player .icon-button {
+  min-width: 48px;
+  min-height: 48px;
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+.app-shell .footer-mark {
+  color: var(--ink);
+  font: 700 19px/1 var(--sport-type);
+  letter-spacing: -0.5px;
+}

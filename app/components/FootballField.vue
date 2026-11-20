@@ -89,7 +89,7 @@ function choose(event: MouseEvent) {
           >{{ gain > 0 ? "+" : "" }}{{ gain }}</span
         >
       </div>
-      <span class="field-center-word">SIDELINE</span>
+      <span class="field-center-word">MIDFIELD</span>
     </div>
     <div class="endzone right">
       <span>{{ opponent }}</span>
