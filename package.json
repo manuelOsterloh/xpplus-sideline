@@ -1,0 +1,27 @@
+{
+  "name": "xpplus-sideline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --host 127.0.0.1",
+    "build": "nuxt generate && node scripts/build-sw.mjs",
+    "preview": "node scripts/serve.mjs",
+    "typecheck": "nuxt typecheck",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@lucide/vue": "^1.55.0",
+    "nuxt": "4.6.1",
+    "vue": "3.5.43"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "typescript": "^5.9.3",
+    "vue-tsc": "3.3.13"
+  },
+  "overrides": {
+    "simple-git": "4.0.2"
+  }
+}
